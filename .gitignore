@@ -1,0 +1,23 @@
+# Go build outputs
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Directories
+/bin/
+/output/
+/buffer/
+
+# Log files
+*.log
+*.log.*
+
+# IDE and OS files
+.DS_Store
+.idea/
+.vscode/
+
+# Go module temporary files
+go.work
