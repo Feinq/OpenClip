@@ -9,6 +9,7 @@
 /bin/
 /output/
 /buffer/
+/build/
 
 # Log files
 *.log

@@ -1,0 +1,35 @@
+# Visual Studio files
+.vscode/
+.vs/
+*.sdf
+*.opensdf
+*.cache
+*.tlog
+*.log
+
+# Build directories
+/Debug/
+/Release/
+/x64/
+/OpenClipAudio/x64/
+
+# User-specific files
+*.user
+*.userosscache
+*.suo
+*.VC.db
+
+# Auto-generated precompiled headers
+*.pch
+*.idb
+
+# Optional: Ignore any crash dumps or other temp files
+*.dmp
+*.tmp
+*.bak
+*.old
+
+# Backup files
+*~
+*.orig
+*.rej

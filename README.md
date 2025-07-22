@@ -3,11 +3,13 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![Go Version](https://img.shields.io/github/go-mod/go-version/Feinq/OpenClip)
 
-**OpenClip** is a lightweight screen recording tool, inspired by apps like Medal.tv and ShadowPlay, but fully open-source and built to be transparent and extensible.
+**OpenClip** is a lightweight, hybrid Go/C++ screen recording tool, inspired by apps like Medal.tv and ShadowPlay, but fully open-source and built to be transparent and extensible.
 
-It's being built as a cross-platform desktop tool (Windows + Linux first) with native hotkey support, circular buffer recording via FFmpeg, and eventually, native game-aware and audio-aware recording.
+It's being built as a cross-platform desktop tool with native hotkey support, circular buffer recording via FFmpeg, and eventually, native game-aware and audio-aware recording.
 
 This is a work-in-progress, not production-ready project, but already functional and designed with clarity and simplicity in mind.
+
+**Linux and macOS is currently not supported**, but is planned for future releases.
 
 ## 🧱 Project Status
 
@@ -17,11 +19,11 @@ Right now it's in early development. Here's what's working and what's coming nex
 - [x] Config file auto-creation + YAML parsing
 - [x] Custom logger (stdout + file with log level)
 - [x] FFmpeg-based circular buffer with segment recording
-- [x] Hotkey detection on Windows + Linux (X11)
+- [x] Hotkey detection on Windows
 - [x] Clip saving via hotkey
 
 ### v0.2 _(Upcoming)_
-- [ ] Initial audio capture (WASAPI on Windows)
+- [x] Initial audio capture (WASAPI on Windows)
 - [ ] Game/process detection and smart folder naming
 - [ ] Save clips into game-specific subfolders (e.g., `./output/Strinova/clip-1234.mp4`)
 - [ ] Window-specific FFmpeg capture (targeting active game window)
@@ -31,6 +33,7 @@ Right now it's in early development. Here's what's working and what's coming nex
 - [ ] Per-process audio capture via WASAPI
 - [ ] Replace FFmpeg with native DLLs for performance
 - [ ] Basic GUI for configuration and browsing
+- [ ] Support for other operating systems (Linux (X11/Wayland), macOS)
 
 ## 🗺️ Roadmap
 
@@ -43,29 +46,46 @@ We're building this in small, stable chunks. Each release aims to be minimal but
 | v0.3    | Native capture PoC (Windows)     | ⏳ Planned      |
 | v1.0    | Full native pipeline + GUI       | 🔮 One day maybe|
 
-## 🛠️ Requirements
+## 🛠️ Building From Source
 
-- **Go** 1.24+
-- **FFmpeg** in PATH, used for video capture in current implementation (v0.1)
+OpenClip is a hybrid Go/C++ project. To build it from source, you will need both the Go toolchain and a C++ compiler for the native audio capture module.
 
-### Windows
-- Use the essential or full [Gyan.dev FFmpeg build](https://www.gyan.dev/ffmpeg/builds/)
+### Prerequisites
 
-### Linux _(Tested on Arch Linux)_
+*   **Go**: Version 1.24 or later.
+*   **Visual Studio 2022 (or later):** You must have the **"Desktop development with C++"** workload installed. This provides the MSVC compiler, Windows SDK, and build tools needed for the native DLL.
+*   **FFmpeg**: (For the current capture backend) The full build from [Gyan.dev](https://www.gyan.dev/ffmpeg/builds/) is recommended.
 
-- Requires **X11** (Wayland not yet supported)
-- Install FFmpeg via your package manager (e.g., `sudo pacman -S ffmpeg`)
+### Build Steps
 
-### macOS _(Not tested)_
-- Download FFmpeg via the official site or use Homebrew: `brew install ffmpeg`
+1.  **Clone the repository:**
+    ```sh
+    git clone https://github.com/Feinq/OpenClip.git
+    cd OpenClip
+    ```
 
-## 🚀 Running
+2.  **Compile the Native DLL:**
+    *   Open `native/OpenClipAudio/OpenClipAudio.sln` in Visual Studio.
+    *   Set the build configuration to **Release** and the platform to **x64**.
+    *   Build the solution (`Build -> Build Solution`). This will create the `OpenClipAudio.dll` file inside `native/OpenClipAudio/x64/Release/`.
 
-```bash
-git clone https://github.com/Feinq/OpenClip.git
-cd OpenClip
-go run ./cmd/openclip
-```
+3.  **Build the Go Application:**
+    You can now run the included PowerShell build script, which will copy all the necessary files into a clean `build` directory.
+    ```powershell
+    .\build.ps1
+    ```
+    
+    Or you can build manually, but you will have to make sure you have a copy of the `OpenClipAudio.dll` in the directory the executable is present in.
+
+    ```sh
+    go build -o openclip.exe .\cmd\openclip\
+    ```
+
+4.  **Run the Application:**
+    ```sh
+    cd build
+    .\openclip.exe
+    ```
 
 ## 📄 License
 

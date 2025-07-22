@@ -2,6 +2,7 @@ package hotkey
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/Feinq/openclip/internal/logger"
 	"golang.design/x/hotkey"
@@ -11,6 +12,29 @@ type Listener struct {
 	log      logger.LoggerInterface
 	callback func()
 	hotkey   *hotkey.Hotkey
+}
+
+// Windows-specific implementation of parsing hotkeys.
+func parseHotkey(hotkeyStr string) ([]hotkey.Modifier, hotkey.Key, error) {
+	keyMap := map[string]hotkey.Key{
+		"f1":  hotkey.KeyF1,
+		"f2":  hotkey.KeyF2,
+		"f3":  hotkey.KeyF3,
+		"f4":  hotkey.KeyF4,
+		"f5":  hotkey.KeyF5,
+		"f6":  hotkey.KeyF6,
+		"f7":  hotkey.KeyF7,
+		"f8":  hotkey.KeyF8,
+		"f9":  hotkey.KeyF9,
+		"f10": hotkey.KeyF10,
+		"f11": hotkey.KeyF11,
+		"f12": hotkey.KeyF12,
+	}
+	key, ok := keyMap[strings.ToLower(hotkeyStr)]
+	if !ok {
+		return nil, 0, fmt.Errorf("unsupported hotkey: %s", hotkeyStr)
+	}
+	return []hotkey.Modifier{}, key, nil
 }
 
 func NewListener(hotkeyStr string, callback func(), log logger.LoggerInterface) (*Listener, error) {
