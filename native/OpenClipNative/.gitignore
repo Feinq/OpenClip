@@ -8,6 +8,7 @@
 *.log
 
 # Build directories
+/build/
 /Debug/
 /Release/
 /x64/

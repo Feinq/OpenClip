@@ -1,3 +1,4 @@
+#ifdef defined(_WIN32) || defined(_WIN64)
 #include "pch.h"
 
 BOOL APIENTRY DllMain(HMODULE hModule,
@@ -16,4 +17,4 @@ BOOL APIENTRY DllMain(HMODULE hModule,
     }
     return TRUE;
 }
-
+#endif // defined(_WIN32) || defined(_WIN64)

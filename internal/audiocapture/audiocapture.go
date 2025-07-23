@@ -1,17 +1,7 @@
-// go:build windows
-
 package audiocapture
-
-/*
-#cgo CFLAGS: -I${SRCDIR}/../../native/OpenClipNative
-#cgo LDFLAGS: -L${SRCDIR}/../../native/OpenClipNative/x64/Release -lOpenClipNative
-#include "OCNative.h"
-*/
-import "C"
 
 import (
 	"fmt"
-	"unsafe"
 )
 
 type AudioStream struct {
@@ -20,13 +10,13 @@ type AudioStream struct {
 }
 
 func Start() (*AudioStream, error) {
-	result := C.StartAudioCapture()
+	result := startCapture()
 	if result != 0 {
 		return nil, fmt.Errorf("failed to start audio capture, C error code: %d", int(result))
 	}
 
-	sampleRate := int(C.GetAudioSampleRate())
-	channels := int(C.GetAudioChannels())
+	sampleRate := getAudioSampleRate()
+	channels := getAudioChannels()
 
 	if sampleRate == 0 || channels == 0 {
 		Stop()
@@ -42,18 +32,12 @@ func Start() (*AudioStream, error) {
 }
 
 func Stop() {
-	C.StopAudioCapture()
+	stopCapture()
 }
 
 func (s *AudioStream) Read(p []byte) (int, error) {
 	if len(p) == 0 {
 		return 0, nil
 	}
-
-	bytesRead := C.ReadAudioBuffer(
-		(*C.uchar)(unsafe.Pointer(&p[0])),
-		C.int(len(p)),
-	)
-
-	return int(bytesRead), nil
+	return readAudioBuffer(p)
 }

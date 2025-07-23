@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/Feinq/openclip/internal/audiocapture"
@@ -36,8 +35,7 @@ func (c *Capture) Stop() {
 	close(c.stopCh)
 
 	if c.cmd != nil && c.cmd.Process != nil {
-		err := c.cmd.Process.Signal(syscall.Signal(syscall.CTRL_BREAK_EVENT))
-		if err != nil {
+		if err := c.cmd.Process.Signal(os.Interrupt); err != nil {
 			c.log.Warnf("Failed to send interrupt to FFmpeg, killing process: %v", err)
 			c.cmd.Process.Kill()
 		}

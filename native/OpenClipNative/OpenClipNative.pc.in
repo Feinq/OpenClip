@@ -1,0 +1,12 @@
+# OpenClipNative pkg-config file
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: OpenClipNative
+Description: Native backend library for OpenClip screen recorder
+Version: @PACKAGE_VERSION@
+Libs: -L${libdir} -lOpenClipNative
+Cflags: -I${includedir}

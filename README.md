@@ -53,7 +53,10 @@ OpenClip is a hybrid Go/C++ project. To build it from source, you will need both
 ### Prerequisites
 
 *   **Go**: Version 1.24 or later.
-*   **Visual Studio 2022 (or later):** You must have the **"Desktop development with C++"** workload installed. This provides the MSVC compiler, Windows SDK, and build tools needed for the native DLL.
+*   **CMake**: Version 3.20 or later.
+*   **C++ Compiler**: A C++ compiler that supports C++17 or later
+    -  **Windows**: Visual Studio 2022 (with "Desktop development with C++" workload) is recommended.
+    -  **Linux**: GCC or Clang.
 *   **FFmpeg**: (For the current capture backend) The full build from [Gyan.dev](https://www.gyan.dev/ffmpeg/builds/) is recommended.
 
 ### Build Steps
@@ -65,16 +68,35 @@ OpenClip is a hybrid Go/C++ project. To build it from source, you will need both
     ```
 
 2.  **Compile the Native DLL:**
-    *   Open `native/OpenClipNative/OpenClipNative.sln` in Visual Studio.
-    *   Set the build configuration to **Release** and the platform to **x64**.
-    *   Build the solution (`Build -> Build Solution`). This will create the `OpenClipNative.dll` file inside `native/OpenClipNative/x64/Release/`.
+
+-   **Windows:**
+    Open a **Developer Command Prompt for Visual Studio** and run:
+    ```sh
+    cd native/OpenClipNative
+    mkdir build
+    cd build
+    cmake .. -G "Visual Studio 17 2022" -A x64
+    cmake --build . --config Release
+    ```
+-   **Linux:**
+    ```sh
+    cd native/OpenClipNative
+    mkdir build
+    cd build
+    cmake ..
+    cmake --build . --config Release
+    ```
 
 3.  **Build the Go Application:**
+
+-   **Windows only:**
     You can now run the included PowerShell build script, which will copy all the necessary files into a clean `build` directory.
     ```powershell
     .\build.ps1
     ```
-    
+
+-  **Linux:**
+
     Or you can build manually, but you will have to make sure you have a copy of the `OpenClipNative.dll` in the directory the executable is present in.
 
     ```sh
