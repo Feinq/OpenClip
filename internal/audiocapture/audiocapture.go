@@ -3,10 +3,9 @@
 package audiocapture
 
 /*
-#cgo CFLAGS: -I.
-#cgo LDFLAGS: -L${SRCDIR} -lOpenClipAudio
-
-#include "audiocapture.h"
+#cgo CFLAGS: -I${SRCDIR}/../../native/OpenClipNative
+#cgo LDFLAGS: -L${SRCDIR}/../../native/OpenClipNative/x64/Release -lOpenClipNative
+#include "OCNative.h"
 */
 import "C"
 
@@ -21,13 +20,13 @@ type AudioStream struct {
 }
 
 func Start() (*AudioStream, error) {
-	result := C.StartCapture()
+	result := C.StartAudioCapture()
 	if result != 0 {
 		return nil, fmt.Errorf("failed to start audio capture, C error code: %d", int(result))
 	}
 
-	sampleRate := int(C.GetSampleRate())
-	channels := int(C.GetChannels())
+	sampleRate := int(C.GetAudioSampleRate())
+	channels := int(C.GetAudioChannels())
 
 	if sampleRate == 0 || channels == 0 {
 		Stop()
@@ -43,7 +42,7 @@ func Start() (*AudioStream, error) {
 }
 
 func Stop() {
-	C.StopCapture()
+	C.StopAudioCapture()
 }
 
 func (s *AudioStream) Read(p []byte) (int, error) {

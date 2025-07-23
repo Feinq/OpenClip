@@ -11,7 +11,7 @@
 /Debug/
 /Release/
 /x64/
-/OpenClipAudio/x64/
+/OpenClipNative/x64/
 
 # User-specific files
 *.user

@@ -1,21 +1,14 @@
 $buildDir = ".\build"
 $goSourcePath = "./cmd/openclip"
-$dllSourcePath = ".\native\OpenClipAudio\x64\Release\OpenClipAudio.dll"
-$internalAudioCapturePath = "$buildDir\internal\audiocapture"
-$ffmpegSourcePath = ".\bin"
+$dllSourcePath = ".\native\OpenClipNative\x64\Release\OpenClipNative.dll"
+$ffmpegBinariesPath = ".\bin"
 
 # Clean up the previous build directory
 if (Test-Path $buildDir) {
     Write-Host "Cleaning old build directory..."
-    Remove-Item $buildDir -Recurse -Force
+    Remove-Item -Path $buildDir -Recurse -Force
 }
 New-Item -ItemType Directory -Path $buildDir
-
-# Copy OpenClipAudio.dll to internal/audiocapture/
-if (-not (Test-Path $internalAudioCapturePath)) {
-    New-Item -ItemType Directory -Path $internalAudioCapturePath -Force
-}
-Copy-Item -Path $dllSourcePath -Destination $internalAudioCapturePath
 
 # Build the Go application
 Write-Host "Building Go application..."
@@ -25,12 +18,12 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-# Copy required DLLs
+# Copy required Native DLL
 Write-Host "Copying native DLLs..."
-Copy-Item -Path $dllSourcePath -Destination $buildDir
+Copy-Item -Path $dllSourcePath -Destination $buildDir -Force # -Force to overwrite if it already exists
 
 # Copy FFmpeg binaries
-Write-Host "Copying FFmpeg..."
-Copy-Item -Path "$ffmpegSourcePath\*" -Destination $buildDir
+Write-Host "Copying FFmpeg binaries..."
+Copy-Item -Path "$ffmpegBinariesPath\*" -Destination $buildDir -Recurse -Force
 
 Write-Host "Build complete! Application is ready in the '$buildDir' directory." -ForegroundColor Green

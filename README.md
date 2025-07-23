@@ -65,9 +65,9 @@ OpenClip is a hybrid Go/C++ project. To build it from source, you will need both
     ```
 
 2.  **Compile the Native DLL:**
-    *   Open `native/OpenClipAudio/OpenClipAudio.sln` in Visual Studio.
+    *   Open `native/OpenClipNative/OpenClipNative.sln` in Visual Studio.
     *   Set the build configuration to **Release** and the platform to **x64**.
-    *   Build the solution (`Build -> Build Solution`). This will create the `OpenClipAudio.dll` file inside `native/OpenClipAudio/x64/Release/`.
+    *   Build the solution (`Build -> Build Solution`). This will create the `OpenClipNative.dll` file inside `native/OpenClipNative/x64/Release/`.
 
 3.  **Build the Go Application:**
     You can now run the included PowerShell build script, which will copy all the necessary files into a clean `build` directory.
@@ -75,7 +75,7 @@ OpenClip is a hybrid Go/C++ project. To build it from source, you will need both
     .\build.ps1
     ```
     
-    Or you can build manually, but you will have to make sure you have a copy of the `OpenClipAudio.dll` in the directory the executable is present in.
+    Or you can build manually, but you will have to make sure you have a copy of the `OpenClipNative.dll` in the directory the executable is present in.
 
     ```sh
     go build -o openclip.exe .\cmd\openclip\

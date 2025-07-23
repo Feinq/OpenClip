@@ -1,5 +1,6 @@
 #include "pch.h"
-#include "audiocapture.h"
+#include "OCNative.h"
+#include "CircularBuffer.h"
 #include <mmdeviceapi.h>
 #include <audioclient.h>
 #include <thread>
@@ -16,55 +17,14 @@ const IID IID_IAudioCaptureClient = __uuidof(IAudioCaptureClient);
 
 IAudioClient* pAudioClient = nullptr;
 IAudioCaptureClient* pCaptureClient = nullptr;
-std::thread captureThread;
-std::atomic<bool> isCapturing = false;
+std::thread audioCaptureThread;
+std::atomic<bool> isAudioCapturing = false;
 WAVEFORMATEX* pWaveFormat = nullptr;
 
-std::vector<BYTE> circularBuffer;
-std::mutex bufferMutex;
-size_t bufferWritePos = 0;
-size_t bufferReadPos = 0;
-size_t bufferDataSize = 0;
-const size_t BUFFER_SIZE = 48000 * 4 * 2 * 5; // 5 seconds of stereo 32-bit float audio at 48kHz
+CircularBuffer<BYTE> audioCircularBuffer;
+const size_t AUDIO_BUFFER_SIZE = 48000 * 4 * 2 * 5; // 5 seconds of stereo 32-bit float audio at 48kHz
 
-void WriteToCircularBuffer(const BYTE* data, size_t bytes) {
-    std::lock_guard<std::mutex> lock(bufferMutex);
-
-    size_t spaceAvailable = BUFFER_SIZE - bufferDataSize;
-    if (bytes > spaceAvailable) {
-        bufferReadPos = (bufferReadPos + (bytes - spaceAvailable)) % BUFFER_SIZE;
-        bufferDataSize -= (bytes - spaceAvailable);
-    }
-
-    size_t firstChunk = std::min(bytes, BUFFER_SIZE - bufferWritePos);
-    memcpy(&circularBuffer[bufferWritePos], data, firstChunk);
-
-    if (bytes > firstChunk) {
-        memcpy(&circularBuffer[0], data + firstChunk, bytes - firstChunk);
-    }
-
-    bufferWritePos = (bufferWritePos + bytes) % BUFFER_SIZE;
-    bufferDataSize += bytes;
-}
-
-size_t ReadFromCircularBuffer(BYTE* dest, size_t bytes) {
-    std::lock_guard<std::mutex> lock(bufferMutex);
-
-    size_t bytesToRead = std::min(bytes, bufferDataSize);
-    size_t firstChunk = std::min(bytesToRead, BUFFER_SIZE - bufferReadPos);
-
-    memcpy(dest, &circularBuffer[bufferReadPos], firstChunk);
-    if (bytesToRead > firstChunk) {
-        memcpy(dest + firstChunk, &circularBuffer[0], bytesToRead - firstChunk);
-    }
-
-    bufferReadPos = (bufferReadPos + bytesToRead) % BUFFER_SIZE;
-    bufferDataSize -= bytesToRead;
-
-    return bytesToRead;
-}
-
-void CaptureThreadFunc() {
+void AudioCaptureThreadFunc() {
     if (FAILED(CoInitialize(NULL))) return;
 
     HRESULT hr;
@@ -75,7 +35,7 @@ void CaptureThreadFunc() {
     hr = pAudioClient->Start();
     if (FAILED(hr)) return;
 
-    while (isCapturing) {
+    while (isAudioCapturing) {
 
         hr = pCaptureClient->GetNextPacketSize(&numFramesAvailable);
         if (FAILED(hr)) continue;
@@ -87,7 +47,7 @@ void CaptureThreadFunc() {
 
         if (!(flags & AUDCLNT_BUFFERFLAGS_SILENT)) {
             int bytesToWrite = numFramesAvailable * pWaveFormat->nBlockAlign;
-            WriteToCircularBuffer(pData, bytesToWrite);
+            audioCircularBuffer.Write(pData, bytesToWrite);
         }
 
         pCaptureClient->ReleaseBuffer(numFramesAvailable);
@@ -97,8 +57,8 @@ void CaptureThreadFunc() {
     CoUninitialize();
 }
 
-AUDIOCAPTURE_API int StartCapture() {
-    if (isCapturing) return 0;
+OPENCLIP_NATIVE_API int StartAudioCapture() {
+    if (isAudioCapturing) return 0;
 
     HRESULT hr;
     hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
@@ -126,23 +86,20 @@ AUDIOCAPTURE_API int StartCapture() {
     hr = pAudioClient->GetService(IID_IAudioCaptureClient, (void**)&pCaptureClient);
     if (FAILED(hr)) return -7;
 
-    circularBuffer.resize(BUFFER_SIZE);
-    bufferWritePos = 0;
-    bufferReadPos = 0;
-    bufferDataSize = 0;
+    audioCircularBuffer.Resize(AUDIO_BUFFER_SIZE);
 
-    isCapturing = true;
-    captureThread = std::thread(CaptureThreadFunc);
+    isAudioCapturing = true;
+    audioCaptureThread = std::thread(AudioCaptureThreadFunc);
 
     return 0;
 }
 
-AUDIOCAPTURE_API void StopCapture() {
-    if (!isCapturing) return;
+OPENCLIP_NATIVE_API void StopAudioCapture() {
+    if (!isAudioCapturing) return;
 
-    isCapturing = false;
-    if (captureThread.joinable()) {
-        captureThread.join();
+    isAudioCapturing = false;
+    if (audioCaptureThread.joinable()) {
+        audioCaptureThread.join();
     }
 
     if (pCaptureClient) { pCaptureClient->Release(); pCaptureClient = nullptr; }
@@ -152,20 +109,20 @@ AUDIOCAPTURE_API void StopCapture() {
     CoUninitialize();
 }
 
-AUDIOCAPTURE_API int ReadAudioBuffer(unsigned char* pBuffer, int bufferSize) {
-    if (!pBuffer || bufferSize == 0 || !isCapturing) {
+OPENCLIP_NATIVE_API int ReadAudioBuffer(unsigned char* pBuffer, int bufferSize) {
+    if (!pBuffer || bufferSize == 0 || !isAudioCapturing) {
         return 0;
     }
 
-    return static_cast<int>(ReadFromCircularBuffer(pBuffer, bufferSize));
+    return static_cast<int>(audioCircularBuffer.Read(pBuffer, bufferSize));
 }
 
-AUDIOCAPTURE_API int GetSampleRate() {
+OPENCLIP_NATIVE_API int GetAudioSampleRate() {
     if (!pWaveFormat) return 0;
     return pWaveFormat->nSamplesPerSec;
 }
 
-AUDIOCAPTURE_API int GetChannels() {
+OPENCLIP_NATIVE_API int GetAudioChannels() {
     if (!pWaveFormat) return 0;
     return pWaveFormat->nChannels;
 }
