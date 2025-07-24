@@ -7,7 +7,7 @@ class PipeWireAudio;
 std::unique_ptr<AudioBackend> CreateAudioBackend();
 
 #if defined(_WIN32) || defined(_WIN64)
-#include "platform/windows/WASAPIAudio.h"
+#include <OpenClipNative/platform/windows/WASAPIAudio.h>
 std::unique_ptr<AudioBackend> CreateAudioBackend() {
     return std::make_unique<WASAPIAudio>();
 }

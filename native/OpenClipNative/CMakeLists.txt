@@ -41,7 +41,8 @@ target_include_directories(OpenClipNative
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
     PRIVATE
-        ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/platform
 )
 
 if(WIN32)
@@ -55,6 +56,10 @@ if(WIN32)
 endif()
 
 if(WIN32)
+    include_directories(
+        ${PROJECT_SOURCE_DIR}/generated
+    )
+    
     target_link_libraries(OpenClipNative PRIVATE
         ole32
         uuid
